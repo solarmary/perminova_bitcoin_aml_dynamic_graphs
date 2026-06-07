@@ -1,0 +1,19 @@
+﻿metric,range,meaning
+objective,task-specific,"целевая функция: вес, стоимость, размер или score"
+quality_norm,"[0, 1]","нормированное качество внутри задачи, больше лучше"
+quality_score,task-specific,исходное качество/целевая функция из эксперимента
+runtime_sec,"[0, +inf)","время выполнения в секундах, меньше лучше"
+runtime_score,"[0, 1]","нормированная скорость, больше лучше"
+n_solution_edges,"[0, |E|]",число ребер в решении MST/MSF
+valid,"{0, 1}",валидность решения
+success_rate,"[0, 1]",доля успешно найденных маршрутов
+n_queries,"[0, +inf)",число shortest path запросов
+n_solution_nodes,"[0, |V|]",число вершин в решении
+reused_solution_rate,"[0, 1]",доля переиспользованного решения
+changed_edges_ratio,"[0, 1]",доля изменившихся ребер
+coverage_rate,"[0, 1]",доля покрытых ребер Vertex Cover
+precision_at_k,"[0, 1]",точность top-k поиска подграфов
+recall_at_k,"[0, 1]",полнота top-k поиска подграфов
+average_precision,"[0, 1]",Average Precision для поиска аномалий
+subgraph_node_recall,"[0, 1]",полнота по вершинам planted-подграфа
+subgraph_edge_recall,"[0, 1]",полнота по ребрам planted-подграфа

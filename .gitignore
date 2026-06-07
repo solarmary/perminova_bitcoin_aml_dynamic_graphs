@@ -1,0 +1,41 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# Generated parser data
+parser/data/raw/**
+parser/data/interim/**
+parser/data/processed/**
+!parser/data/raw/.gitkeep
+!parser/data/interim/.gitkeep
+!parser/data/processed/.gitkeep
+!parser/data/README.md
+
+# Large generated datasets
+aml/elliptic_patterns_and_classification/data_samples/**
+!aml/elliptic_patterns_and_classification/data_samples/.gitkeep
+*.parquet
+*.pkl
+*.pickle
+*.npy
+*.npz
+
+# Archives and temporary files
+*.zip
+*.tmp
+.tmp_*.txt
+~$*
+.~lock*
+~WRL*.tmp
+
+# OS and IDE
+.DS_Store
+Thumbs.db

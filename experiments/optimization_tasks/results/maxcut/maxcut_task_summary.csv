@@ -1,0 +1,5 @@
+﻿method_group,method,mean_quality,mean_runtime_sec,valid_rate,mean_quality_gap_to_baseline,mean_reused_solution_rate,mean_speedup_vs_full_recompute
+ai_ml,learning_augmented_neural_warm_start_maxcut,100642.31144654466,0.2982216654999661,1.0,-0.006358401157290685,,18.65929888996791
+classical,classical_random_restarts_local_improvement,100006.84617017172,5.321139987399943,1.0,0.0,0.0,1.0
+dynamic,dynamic_local_search_warm_start,100634.34279617315,0.27141920269990577,1.0,-0.006277985182450946,0.8999324767264895,20.31910016590937
+graph_ai,graph_ai_message_passing_maxcut,99694.60171928955,0.3740100165500394,1.0,0.0031246148291666207,,14.279342545936828

@@ -1,0 +1,5 @@
+﻿method_group,method,mean_quality,mean_runtime_sec,valid_rate,mean_quality_gap_to_baseline,mean_reused_solution_rate,mean_speedup_vs_full_recompute
+ai_ml,primal_dual_neural_node_ranking,4347.9,103.18588939760016,1.0,-0.03671858097924814,,0.00013485824062560732
+classical,classical_maximal_matching_2approx,4513.3,0.013888834250019499,1.0,0.0,0.0,1.0
+dynamic,dynamic_matching_cover_repair,3710.9,0.06273568144993077,1.0,-0.1778813405093693,0.95,0.26747193796884067
+graph_ai,graph_ai_message_passing_vertex_cover,4050.05,3.619537800899798,1.0,-0.10265084599976797,,0.0038439531277352874

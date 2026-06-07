@@ -1,0 +1,5 @@
+﻿method_group,method,mean_quality,mean_runtime_sec,valid_rate,mean_quality_gap_to_baseline,mean_reused_solution_rate,mean_speedup_vs_full_recompute
+ai_ml,learned_edge_ranking_msf_practical_adaptation,5588.012313315247,0.38630769105001833,1.0,0.05344456789197096,,0.6126468472365446
+classical,classical_kruskal_full_recompute,5303.807203890084,0.2358259629000031,1.0,0.0,0.0,1.0
+dynamic,dynamic_delta_aware_warm_start_msf,5303.807203890084,0.20892890729999464,1.0,0.0,0.0,1.4412934542925435
+graph_ai,graph_ai_message_passing_msf,5303.893629805477,0.4487040848999939,1.0,1.6300597366717507e-05,,0.9957360652380876

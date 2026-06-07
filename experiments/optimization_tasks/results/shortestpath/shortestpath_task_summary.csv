@@ -1,0 +1,5 @@
+﻿method_group,method,mean_quality,mean_runtime_sec,valid_rate,mean_quality_gap_to_baseline,mean_reused_solution_rate,mean_speedup_vs_full_recompute
+ai_ml,ai_risk_aware_routing_proxy_inspired_by_gnn_rl,8.187689806947224,0.38570401359999096,0.5,0.09817690460740401,,1.176078878834877
+classical,classical_dijkstra_full_recompute,7.454734594189749,0.45231003744997905,0.5,0.0,0.0,1.0
+dynamic,dynamic_affected_query_path_reuse,7.454734594189749,0.44271338654998543,0.5,0.0,0.0,1.0230084203972454
+graph_ai,graph_ai_message_passing_routing,7.456126301081582,0.44797662449997233,0.5,0.00018598707853404516,,1.0745382156555578

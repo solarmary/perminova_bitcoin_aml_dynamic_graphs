@@ -1,0 +1,11 @@
+requests
+pandas
+networkx
+tqdm
+pydantic
+pyarrow
+python-dotenv
+loguru
+PyYAML
+jupyter
+matplotlib

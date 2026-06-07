@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #f7f9fc;
+      color: #1f2933;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 10px;
+      height: 548px;
+      box-sizing: border-box;
+      padding: 8px;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d9e2ec;
+      border-radius: 12px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+    .side {
+      padding: 12px;
+      font-size: 12px;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #52606d;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin: 3px 3px 3px 0;
+      font-size: 11px;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 7px 0;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .metric {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+    }
+    .metric strong {
+      display: block;
+      font-size: 18px;
+      color: #111827;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      background:
+        radial-gradient(circle at 22% 28%, rgba(219, 234, 254, 0.75), transparent 24%),
+        radial-gradient(circle at 72% 62%, rgba(254, 226, 226, 0.55), transparent 26%),
+        #ffffff;
+    }
+    svg:active {
+      cursor: grabbing;
+    }
+    .edge {
+      stroke: #94a3b8;
+      stroke-opacity: 0.58;
+      fill: none;
+      stroke-width: 1.4;
+      marker-end: url(#arrow);
+    }
+    .edge.suspicious {
+      stroke: #ef4444;
+      stroke-opacity: 0.82;
+      stroke-width: 2.1;
+    }
+    .node {
+      stroke: #ffffff;
+      stroke-width: 2.2;
+      filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.22));
+    }
+    .label {
+      font-size: 10px;
+      fill: #334155;
+      paint-order: stroke;
+      stroke: white;
+      stroke-width: 3px;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="panel">
+      <svg id="graph" viewBox="0 0 1000 620">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"></path>
+          </marker>
+        </defs>
+        <g id="viewport"></g>
+      </svg>
+    </div>
+    <div class="panel side">
+      <div class="title">Граф Bitcoin-паттернов</div>
+      <div class="subtitle">
+        Отображается статический граф транзакций в формате основного режима:
+        узлы имеют `tx_hash`, `risk_score`, `risk_label`, `block_height`;
+        ребра имеют `txId1`, `txId2`.
+      </div>
+      <div>
+        <span class="badge">fan-in</span>
+        <span class="badge">risk_score</span>
+        <span class="badge">transaction graph</span>
+      </div>
+      <div class="legend-row"><span class="dot" style="background:#22c55e"></span>обычный узел</div>
+      <div class="legend-row"><span class="dot" style="background:#ef4444"></span>подозрительный узел</div>
+      <div class="metric">
+        <strong id="nodesCount">0</strong>
+        транзакций
+      </div>
+      <div class="metric">
+        <strong id="edgesCount">0</strong>
+        связей
+      </div>
+      <div class="metric">
+        <strong id="suspiciousCount">0</strong>
+        подозрительных узлов
+      </div>
+      <div class="subtitle" style="margin-top:10px">
+        Колесо мыши приближает граф. Левой кнопкой мыши можно перемещать область.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const transactions = [
+      {tx_hash: "tx_948650_a1f3", block_height: 948650, timestamp: 1778349600, total_output_value: 0.42, risk_score: 0.18, risk_label: "normal", x: 112, y: 114},
+      {tx_hash: "tx_948650_b8d2", block_height: 948650, timestamp: 1778349612, total_output_value: 0.37, risk_score: 0.21, risk_label: "normal", x: 120, y: 190},
+      {tx_hash: "tx_948650_c7e1", block_height: 948650, timestamp: 1778349626, total_output_value: 0.58, risk_score: 0.16, risk_label: "normal", x: 122, y: 266},
+      {tx_hash: "tx_948650_d6aa", block_height: 948650, timestamp: 1778349640, total_output_value: 0.49, risk_score: 0.28, risk_label: "normal", x: 122, y: 342},
+      {tx_hash: "tx_948650_e451", block_height: 948650, timestamp: 1778349655, total_output_value: 0.74, risk_score: 0.34, risk_label: "normal", x: 128, y: 418},
+      {tx_hash: "tx_948651_f932", block_height: 948651, timestamp: 1778349720, total_output_value: 2.86, risk_score: 0.92, risk_label: "suspicious", x: 348, y: 266},
+      {tx_hash: "tx_948651_g1b7", block_height: 948651, timestamp: 1778349734, total_output_value: 0.31, risk_score: 0.22, risk_label: "normal", x: 540, y: 114},
+      {tx_hash: "tx_948651_h4c9", block_height: 948651, timestamp: 1778349748, total_output_value: 0.27, risk_score: 0.25, risk_label: "normal", x: 560, y: 190},
+      {tx_hash: "tx_948651_j2d5", block_height: 948651, timestamp: 1778349762, total_output_value: 0.39, risk_score: 0.31, risk_label: "normal", x: 570, y: 266},
+      {tx_hash: "tx_948651_k7e8", block_height: 948651, timestamp: 1778349776, total_output_value: 0.33, risk_score: 0.24, risk_label: "normal", x: 558, y: 342},
+      {tx_hash: "tx_948651_l9f1", block_height: 948651, timestamp: 1778349790, total_output_value: 0.44, risk_score: 0.29, risk_label: "normal", x: 540, y: 418},
+      {tx_hash: "tx_948652_m3a4", block_height: 948652, timestamp: 1778349860, total_output_value: 0.91, risk_score: 0.79, risk_label: "suspicious", x: 730, y: 220},
+      {tx_hash: "tx_948652_n6b1", block_height: 948652, timestamp: 1778349872, total_output_value: 0.64, risk_score: 0.67, risk_label: "normal", x: 760, y: 330},
+      {tx_hash: "tx_948653_p8c2", block_height: 948653, timestamp: 1778349950, total_output_value: 0.52, risk_score: 0.43, risk_label: "normal", x: 875, y: 274}
+    ];
+
+    const edges = [
+      {txId1: "tx_948650_a1f3", txId2: "tx_948651_f932", value_btc: 0.42},
+      {txId1: "tx_948650_b8d2", txId2: "tx_948651_f932", value_btc: 0.37},
+      {txId1: "tx_948650_c7e1", txId2: "tx_948651_f932", value_btc: 0.58},
+      {txId1: "tx_948650_d6aa", txId2: "tx_948651_f932", value_btc: 0.49},
+      {txId1: "tx_948650_e451", txId2: "tx_948651_f932", value_btc: 0.74},
+      {txId1: "tx_948651_f932", txId2: "tx_948651_g1b7", value_btc: 0.31},
+      {txId1: "tx_948651_f932", txId2: "tx_948651_h4c9", value_btc: 0.27},
+      {txId1: "tx_948651_f932", txId2: "tx_948651_j2d5", value_btc: 0.39},
+      {txId1: "tx_948651_f932", txId2: "tx_948651_k7e8", value_btc: 0.33},
+      {txId1: "tx_948651_f932", txId2: "tx_948651_l9f1", value_btc: 0.44},
+      {txId1: "tx_948651_j2d5", txId2: "tx_948652_m3a4", value_btc: 0.39},
+      {txId1: "tx_948651_k7e8", txId2: "tx_948652_n6b1", value_btc: 0.33},
+      {txId1: "tx_948652_m3a4", txId2: "tx_948653_p8c2", value_btc: 0.52},
+      {txId1: "tx_948652_n6b1", txId2: "tx_948653_p8c2", value_btc: 0.40}
+    ];
+
+    const svg = document.getElementById("graph");
+    const viewport = document.getElementById("viewport");
+    const nodesCount = document.getElementById("nodesCount");
+    const edgesCount = document.getElementById("edgesCount");
+    const suspiciousCount = document.getElementById("suspiciousCount");
+
+    function nodeColor(tx) {
+      return tx.risk_label === "suspicious" ? "#ef4444" : "#22c55e";
+    }
+
+    function shortHash(value) {
+      return value.slice(0, 8) + "..." + value.slice(-4);
+    }
+
+    function drawGraph() {
+      const byId = new Map(transactions.map(tx => [tx.tx_hash, tx]));
+
+      edges.forEach(edge => {
+        const source = byId.get(edge.txId1);
+        const target = byId.get(edge.txId2);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", source.x);
+        line.setAttribute("y1", source.y);
+        line.setAttribute("x2", target.x);
+        line.setAttribute("y2", target.y);
+        line.setAttribute("class", "edge" + (target.risk_label === "suspicious" || source.risk_label === "suspicious" ? " suspicious" : ""));
+        viewport.appendChild(line);
+      });
+
+      transactions.forEach(tx => {
+        const radius = 10 + Math.min(tx.total_output_value * 4, 10) + (tx.risk_label === "suspicious" ? 5 : 0);
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", tx.x);
+        circle.setAttribute("cy", tx.y);
+        circle.setAttribute("r", radius);
+        circle.setAttribute("fill", nodeColor(tx));
+        circle.setAttribute("class", "node");
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = `${tx.tx_hash}\nrisk_score: ${tx.risk_score}\nblock_height: ${tx.block_height}`;
+        circle.appendChild(title);
+        viewport.appendChild(circle);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", tx.x + radius + 5);
+        text.setAttribute("y", tx.y + 4);
+        text.setAttribute("class", "label");
+        text.textContent = `${shortHash(tx.tx_hash)} ${tx.risk_score.toFixed(2)}`;
+        viewport.appendChild(text);
+      });
+
+      nodesCount.textContent = transactions.length;
+      edgesCount.textContent = edges.length;
+      suspiciousCount.textContent = transactions.filter(tx => tx.risk_label === "suspicious").length;
+    }
+
+    let view = { x: 0, y: 0, w: 1000, h: 620 };
+    let drag = null;
+    function updateViewBox() {
+      svg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
+    }
+    svg.addEventListener("wheel", event => {
+      event.preventDefault();
+      const factor = event.deltaY > 0 ? 1.12 : 0.88;
+      const mx = view.x + view.w / 2;
+      const my = view.y + view.h / 2;
+      view.w *= factor;
+      view.h *= factor;
+      view.x = mx - view.w / 2;
+      view.y = my - view.h / 2;
+      updateViewBox();
+    });
+    svg.addEventListener("mousedown", event => {
+      drag = { x: event.clientX, y: event.clientY, vx: view.x, vy: view.y };
+    });
+    window.addEventListener("mousemove", event => {
+      if (!drag) return;
+      const dx = (event.clientX - drag.x) * view.w / svg.clientWidth;
+      const dy = (event.clientY - drag.y) * view.h / svg.clientHeight;
+      view.x = drag.vx - dx;
+      view.y = drag.vy - dy;
+      updateViewBox();
+    });
+    window.addEventListener("mouseup", () => drag = null);
+
+    drawGraph();
+  </script>
+</body>
+</html>
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #f7f9fc;
+      color: #1f2933;
+      overflow: hidden;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 10px;
+      height: 548px;
+      box-sizing: border-box;
+      padding: 8px;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d9e2ec;
+      border-radius: 12px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+    .graph-panel {
+      position: relative;
+    }
+    .side {
+      padding: 12px;
+      font-size: 12px;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #52606d;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+    .controls {
+      position: absolute;
+      left: 12px;
+      top: 10px;
+      z-index: 5;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #d9e2ec;
+      border-radius: 10px;
+      padding: 6px 8px;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 5px 10px;
+      color: white;
+      background: #2563eb;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    input[type="range"] {
+      width: 210px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin: 3px 3px 3px 0;
+      font-size: 11px;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 7px 0;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .metric {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+    }
+    .metric strong {
+      display: block;
+      font-size: 18px;
+      color: #111827;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(219, 234, 254, 0.7), transparent 22%),
+        radial-gradient(circle at 82% 72%, rgba(254, 226, 226, 0.65), transparent 24%),
+        #ffffff;
+    }
+    svg:active {
+      cursor: grabbing;
+    }
+    .edge {
+      stroke: #94a3b8;
+      stroke-opacity: 0.54;
+      fill: none;
+      stroke-width: 1.4;
+      marker-end: url(#arrow);
+      transition: opacity 0.25s;
+    }
+    .edge.strong {
+      stroke-width: 2.8;
+      stroke: #64748b;
+    }
+    .edge.red {
+      stroke: #ef4444;
+      stroke-opacity: 0.8;
+    }
+    .node {
+      stroke: #ffffff;
+      stroke-width: 2.2;
+      filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.25));
+      transition: opacity 0.25s, r 0.25s;
+    }
+    .label {
+      font-size: 10px;
+      fill: #334155;
+      paint-order: stroke;
+      stroke: white;
+      stroke-width: 3px;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+    .pattern-label {
+      font-size: 12px;
+      font-weight: 700;
+      fill: #111827;
+      paint-order: stroke;
+      stroke: white;
+      stroke-width: 4px;
+    }
+    .hidden {
+      opacity: 0.05;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="panel graph-panel">
+      <div class="controls">
+        <button id="play">Пуск</button>
+        <span>Кадр</span>
+        <input id="step" type="range" min="1" max="6" value="6">
+        <strong id="stepText">6</strong>
+      </div>
+      <svg id="graph" viewBox="0 0 1000 620">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"></path>
+          </marker>
+        </defs>
+        <g id="viewport">
+          <text class="pattern-label" x="110" y="70">fan-in / fan-out</text>
+          <text class="pattern-label" x="672" y="78">mixing-like pattern</text>
+          <text class="pattern-label" x="622" y="500">peeling chain-like</text>
+          <text class="pattern-label" x="110" y="515">адрес-посредник</text>
+        </g>
+      </svg>
+    </div>
+    <div class="panel side">
+      <div class="title">Тестовый граф Bitcoin-паттернов</div>
+      <div class="subtitle">
+        Демонстрационный режим показывает структуру, близкую к реальным on-chain данным:
+        транзакции появляются по времени, вокруг красных узлов формируются подозрительные паттерны.
+      </div>
+      <div>
+        <span class="badge">динамика</span>
+        <span class="badge">risk_score</span>
+        <span class="badge">паттерны</span>
+      </div>
+      <div class="legend-row"><span class="dot" style="background:#22c55e"></span>низкий риск</div>
+      <div class="legend-row"><span class="dot" style="background:#f59e0b"></span>средний риск</div>
+      <div class="legend-row"><span class="dot" style="background:#ef4444"></span>высокий риск</div>
+      <div class="legend-row"><span class="dot" style="background:#7c3aed"></span>центр паттерна</div>
+      <div class="metric">
+        <strong id="nodesCount">0</strong>
+        узлов видно
+      </div>
+      <div class="metric">
+        <strong id="suspiciousCount">0</strong>
+        high-risk узлов
+      </div>
+      <div class="subtitle" style="margin-top:10px">
+        Колесо мыши приближает граф. Зажмите левую кнопку мыши и двигайте область.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const svg = document.getElementById("graph");
+    const viewport = document.getElementById("viewport");
+    const stepInput = document.getElementById("step");
+    const stepText = document.getElementById("stepText");
+    const playButton = document.getElementById("play");
+    const nodesCount = document.getElementById("nodesCount");
+    const suspiciousCount = document.getElementById("suspiciousCount");
+
+    const nodes = [
+      ["tx001", 120, 170, 1, 0.18, 9], ["tx002", 170, 120, 1, 0.22, 8],
+      ["tx003", 178, 225, 1, 0.25, 8], ["tx004", 235, 155, 2, 0.36, 9],
+      ["tx005", 265, 235, 2, 0.42, 10], ["tx006", 330, 190, 2, 0.91, 18],
+      ["tx007", 398, 118, 3, 0.64, 11], ["tx008", 412, 190, 3, 0.78, 14],
+      ["tx009", 407, 265, 3, 0.72, 13], ["tx010", 470, 152, 4, 0.51, 10],
+      ["tx011", 496, 226, 4, 0.57, 10], ["tx012", 542, 188, 4, 0.86, 16],
+
+      ["tx101", 682, 160, 2, 0.35, 9], ["tx102", 734, 112, 2, 0.48, 10],
+      ["tx103", 788, 156, 3, 0.81, 15], ["tx104", 740, 218, 3, 0.76, 13],
+      ["tx105", 828, 238, 4, 0.88, 16], ["tx106", 878, 178, 4, 0.44, 9],
+      ["tx107", 826, 92, 5, 0.62, 11], ["tx108", 912, 126, 5, 0.83, 15],
+      ["tx109", 918, 248, 5, 0.71, 13],
+
+      ["tx201", 580, 444, 2, 0.24, 9], ["tx202", 638, 444, 3, 0.37, 9],
+      ["tx203", 696, 444, 4, 0.73, 13], ["tx204", 754, 444, 4, 0.82, 14],
+      ["tx205", 812, 444, 5, 0.67, 12], ["tx206", 870, 444, 6, 0.91, 16],
+      ["tx207", 740, 515, 5, 0.46, 9], ["tx208", 812, 525, 6, 0.58, 10],
+
+      ["tx301", 145, 410, 1, 0.20, 9], ["tx302", 218, 382, 2, 0.34, 9],
+      ["tx303", 300, 410, 3, 0.89, 17], ["tx304", 382, 382, 4, 0.59, 11],
+      ["tx305", 458, 418, 5, 0.74, 13], ["tx306", 344, 505, 5, 0.62, 11]
+    ];
+
+    const edges = [
+      ["tx001","tx006",1], ["tx002","tx006",1], ["tx003","tx006",1], ["tx004","tx006",2],
+      ["tx005","tx006",2], ["tx006","tx007",3], ["tx006","tx008",3], ["tx006","tx009",3],
+      ["tx007","tx012",4], ["tx008","tx012",4], ["tx009","tx012",4], ["tx010","tx012",4],
+      ["tx011","tx012",4],
+
+      ["tx101","tx103",2], ["tx102","tx103",2], ["tx103","tx104",3], ["tx104","tx105",4],
+      ["tx103","tx105",4], ["tx105","tx106",4], ["tx105","tx107",5], ["tx107","tx108",5],
+      ["tx108","tx109",6], ["tx104","tx109",6], ["tx106","tx109",6],
+
+      ["tx201","tx202",3], ["tx202","tx203",4], ["tx203","tx204",4], ["tx204","tx205",5],
+      ["tx205","tx206",6], ["tx204","tx207",5], ["tx207","tx208",6],
+
+      ["tx301","tx302",2], ["tx302","tx303",3], ["tx303","tx304",4], ["tx304","tx305",5],
+      ["tx303","tx306",5], ["tx006","tx303",5], ["tx012","tx105",5], ["tx109","tx206",6]
+    ];
+
+    function color(score) {
+      if (score >= 0.7) return "#ef4444";
+      if (score >= 0.4) return "#f59e0b";
+      return "#22c55e";
+    }
+
+    function draw() {
+      document.querySelectorAll(".dynamic").forEach(e => e.remove());
+      const step = Number(stepInput.value);
+      let visibleNodes = 0;
+      let redNodes = 0;
+
+      edges.forEach(([a, b, s]) => {
+        const n1 = nodes.find(n => n[0] === a);
+        const n2 = nodes.find(n => n[0] === b);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", n1[1]);
+        line.setAttribute("y1", n1[2]);
+        line.setAttribute("x2", n2[1]);
+        line.setAttribute("y2", n2[2]);
+        line.setAttribute("class", "edge dynamic" + (s <= step ? "" : " hidden") + ((n1[4] >= 0.7 || n2[4] >= 0.7) ? " red" : ""));
+        viewport.appendChild(line);
+      });
+
+      nodes.forEach(([id, x, y, s, risk, r]) => {
+        const isVisible = s <= step;
+        if (isVisible) visibleNodes += 1;
+        if (isVisible && risk >= 0.7) redNodes += 1;
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", x);
+        circle.setAttribute("cy", y);
+        circle.setAttribute("r", risk >= 0.7 ? r + 2 : r);
+        circle.setAttribute("fill", risk >= 0.88 ? "#7c3aed" : color(risk));
+        circle.setAttribute("class", "node dynamic" + (isVisible ? "" : " hidden"));
+        viewport.appendChild(circle);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", x + r + 5);
+        text.setAttribute("y", y + 4);
+        text.setAttribute("class", "label dynamic" + (isVisible ? "" : " hidden"));
+        text.textContent = id + "  " + risk.toFixed(2);
+        viewport.appendChild(text);
+      });
+
+      stepText.textContent = step;
+      nodesCount.textContent = visibleNodes;
+      suspiciousCount.textContent = redNodes;
+    }
+
+    let timer = null;
+    playButton.onclick = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        playButton.textContent = "Пуск";
+        return;
+      }
+      playButton.textContent = "Стоп";
+      timer = setInterval(() => {
+        let value = Number(stepInput.value);
+        stepInput.value = value >= 6 ? 1 : value + 1;
+        draw();
+      }, 900);
+    };
+    stepInput.oninput = draw;
+
+    let view = { x: 0, y: 0, w: 1000, h: 620 };
+    let drag = null;
+    function updateViewBox() {
+      svg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
+    }
+    svg.addEventListener("wheel", event => {
+      event.preventDefault();
+      const factor = event.deltaY > 0 ? 1.12 : 0.88;
+      const mx = view.x + view.w / 2;
+      const my = view.y + view.h / 2;
+      view.w *= factor;
+      view.h *= factor;
+      view.x = mx - view.w / 2;
+      view.y = my - view.h / 2;
+      updateViewBox();
+    });
+    svg.addEventListener("mousedown", event => {
+      drag = { x: event.clientX, y: event.clientY, vx: view.x, vy: view.y };
+    });
+    window.addEventListener("mousemove", event => {
+      if (!drag) return;
+      const dx = (event.clientX - drag.x) * view.w / svg.clientWidth;
+      const dy = (event.clientY - drag.y) * view.h / svg.clientHeight;
+      view.x = drag.vx - dx;
+      view.y = drag.vy - dy;
+      updateViewBox();
+    });
+    window.addEventListener("mouseup", () => drag = null);
+    draw();
+  </script>
+</body>
+</html>

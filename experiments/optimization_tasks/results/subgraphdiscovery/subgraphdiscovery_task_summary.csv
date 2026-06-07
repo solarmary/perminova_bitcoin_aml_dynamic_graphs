@@ -1,0 +1,5 @@
+﻿method_group,method,mean_quality,mean_runtime_sec,valid_rate,mean_quality_gap_to_baseline,mean_reused_solution_rate,mean_speedup_vs_full_recompute
+ai_ml,supervised_suspicious_edge_subgraph_detector,0.6477263130637478,64.70995328309982,1.0,-11.022485753133951,,
+classical,rule_based_suspicious_subgraph_score,0.06627779160672981,0.0010921059501015407,1.0,0.0,,1.0
+dynamic,dynamic_burst_detection_incremental,0.3536734474490421,0.0009236442000656097,1.0,-5.702131476267512,,1.1885592771069082
+graph_ai,graph_ai_message_passing_subgraph_discovery,0.14359694522227767,0.09836345395024182,1.0,-1.3417312646372266,,

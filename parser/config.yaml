@@ -1,0 +1,19 @@
+api:
+  base_url: "https://blockchain.info"
+  timeout_seconds: 30
+  request_delay_seconds: 1.0
+  max_retries: 5
+  backoff_factor: 1.5
+
+paths:
+  raw_blocks_dir: "data/raw/blocks"
+  interim_dir: "data/interim"
+  processed_dir: "data/processed"
+  checkpoint_path: "data/interim/checkpoint.json"
+
+features:
+  time_window_hours: 24
+  many_inputs_threshold: 10
+  many_outputs_threshold: 10
+  high_fee_quantile: 0.95
+  small_output_satoshi: 10000
